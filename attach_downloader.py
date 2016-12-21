@@ -1,4 +1,12 @@
 #!/usr/local/bin/python
+#
+# Author: Andres Aravena
+# 
+# My contributions: CC-BY
+# Derived from Google API reference
+# Original licence: Code samples are licensed under the Apache 2.0 License.
+# 
+
 from __future__ import print_function
 from apiclient import discovery, errors
 from oauth2client import tools

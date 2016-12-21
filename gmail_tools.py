@@ -1,3 +1,11 @@
+#
+# Author: Andres Aravena
+# 
+# My contributions: CC-BY
+# Derived from Google API reference
+# Original licence: Code samples are licensed under the Apache 2.0 License.
+# 
+
 from __future__ import print_function
 import os
 
