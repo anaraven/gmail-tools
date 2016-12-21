@@ -28,14 +28,14 @@ def main(query):
 
 
 if __name__ == '__main__':
-    qry = 'has:attachment'
+    qry = ['has:attachment']
     if(flags.before):
-        qry += ' before:' + flags.before
+        qry.append('before:' + flags.before)
     if(flags.after):
-        qry += ' after:' + flags.after
+        qry.append('after:' + flags.after)
     if(flags.label):
-        qry += ' label:' + flags.label
+        qry.append('label:' + flags.label)
     if(flags.query):
-        qry += ' ' + flags.query
-    print("# "+qry)
-    main(qry)
+        qry.append(flags.query)
+    print("# " + ' '.join(qry))
+    main(' '.join(qry))

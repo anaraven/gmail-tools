@@ -40,5 +40,5 @@ if __name__ == '__main__':
         qry.append('label:' + flags.label)
     if(flags.query):
         qry.append(flags.query)
-    print(' '.join(qry))
+    print("# " + ' '.join(qry))
     main(' '.join(qry))
