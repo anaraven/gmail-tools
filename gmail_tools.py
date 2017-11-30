@@ -1,26 +1,26 @@
 #
 # Author: Andres Aravena
-# 
+#
 # My contributions: CC-BY
 # Derived from Google API reference
 # Original licence: Code samples are licensed under the Apache 2.0 License.
-# 
+#
 
 from __future__ import print_function
-import os
 
-import base64
 from apiclient import discovery, errors
 from oauth2client import client, tools
 from oauth2client.file import Storage
 import hashlib
+import base64
+import os
+import httplib2
 
 # If modifying these scopes, delete your previously saved credentials
 # at ~/.credentials/gmail-python-quickstart.json
 SCOPES = 'https://www.googleapis.com/auth/gmail.readonly'
 CLIENT_SECRET_FILE = 'client_secret.json'
 APPLICATION_NAME = 'Download attached files'
-
 
 def get_credentials(flags):
     """Gets valid user credentials from storage.
@@ -37,7 +37,7 @@ def get_credentials(flags):
         os.makedirs(credential_dir)
     credential_path = os.path.join(credential_dir,
                                    'gmail-python-quickstart.json')
-    
+
     store = Storage(credential_path)
     credentials = store.get()
     if not credentials or credentials.invalid:
@@ -50,7 +50,14 @@ def get_credentials(flags):
         print('Storing credentials to ' + credential_path)
     return credentials
 
-
+def get_service(flags):
+    credentials = get_credentials(flags)
+    http = credentials.authorize(httplib2.Http())
+    service = discovery.build('gmail', 'v1', http=http)
+    return service
+    
+"""Get a list of Messages from the user's mailbox.
+"""
 def ListMessagesMatchingQuery(service, user_id, query=''):
   """List all Messages of the user's mailbox matching the query.
 
@@ -72,20 +79,19 @@ def ListMessagesMatchingQuery(service, user_id, query=''):
     messages = []
     if 'messages' in response:
       messages.extend(response['messages'])
-    
+
     while 'nextPageToken' in response:
       page_token = response['nextPageToken']
       response = service.users().messages().list(userId=user_id, q=query,
                                          pageToken=page_token).execute()
       messages.extend(response['messages'])
-    
+
     return messages
-  except errors.HttpError, error:
+  except errors.HttpError as error:
     print('An error occurred: %s' % error)
 
-"""Retrieve an attachment from a Message.
-"""
-def GetAttachments(service, user_id, msg_id, outdir):
+# Retrieve an attachment from a Message.
+def GetAttachments(service, user_id, msg_id, flags, format="full", metadataHeaders=[]):
   """Get and store attachment from Message with given id.
 
   Args:
@@ -96,7 +102,8 @@ def GetAttachments(service, user_id, msg_id, outdir):
     store_dir: The directory used to store attachments.
   """
   try:
-    message = service.users().messages().get(userId=user_id, id=msg_id).execute()
+    message = service.users().messages().get(userId=user_id, id=msg_id,
+        format=format, metadataHeaders=metadataHeaders).execute()
     sender = [hdr['value'] for hdr in message['payload']['headers'] if hdr['name']=='From']
     date   = [hdr['value'] for hdr in message['payload']['headers'] if hdr['name']=='Date']
     for part in message['payload']['parts']:
@@ -108,15 +115,31 @@ def GetAttachments(service, user_id, msg_id, outdir):
         m = hashlib.md5()
         m.update(file_data)
         filename, file_extension = os.path.splitext(part['filename'])
-        path = ''.join([outdir, m.hexdigest(), file_extension])
-        print( ("%s\t%s\t%s\t%s\t%s%s" % (m.hexdigest(), file_extension,
+        path = ''.join([flags.outdir, m.hexdigest(), file_extension])
+        print( "%s\t%s\t%s\t%s\t%s%s" % (m.hexdigest(), file_extension,
             ";".join(date), sender[0],
-            filename, file_extension)).encode('UTF-8'))
-        f = open(path, 'w')
-        f.write(file_data)
-        f.close()
-        
-  except errors.HttpError, error:
+            filename, file_extension, msg_id))
+        with open(path, 'wb') as f:
+            f.write(file_data)
+  except errors.HttpError as error:
+    print('An error occurred: %s' % error)
+
+def GetMsgAttach(service, user_id, msg_id):
+  try:
+    message = service.users().messages().get(userId=user_id, id=msg_id).execute()
+    sender = [hdr['value'] for hdr in message['payload']['headers'] if hdr['name']=='From']
+    date   = [hdr['value'] for hdr in message['payload']['headers'] if hdr['name']=='Date']
+    attch = []
+    fname = []
+    for part in message['payload']['parts']:
+      if part['filename']:
+        att_id = part['body']['attachmentId']
+        attach = service.users().messages().attachments().get(userId=user_id,
+            messageId=msg_id, id=att_id).execute()
+        attch.append(base64.urlsafe_b64decode(attach['data'].encode('ascii')))
+        fname.append(part['filename'])
+    return (sender, date, fname, attch)
+  except errors.HttpError as error:
     print('An error occurred: %s' % error)
 
 def GetMessage(service, user_id, msg_id, lbl):
