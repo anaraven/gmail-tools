@@ -55,7 +55,7 @@ def get_service(flags):
     http = credentials.authorize(httplib2.Http())
     service = discovery.build('gmail', 'v1', http=http)
     return service
-    
+
 """Get a list of Messages from the user's mailbox.
 """
 def ListMessagesMatchingQuery(service, user_id, query=''):
@@ -142,7 +142,7 @@ def GetMsgAttach(service, user_id, msg_id):
   except errors.HttpError as error:
     print('An error occurred: %s' % error)
 
-def GetMessage(service, user_id, msg_id, lbl):
+def GetMessage(service, user_id, msg_id):
   """
   Args:
     service: Authorized Gmail API service instance.
@@ -152,11 +152,11 @@ def GetMessage(service, user_id, msg_id, lbl):
   """
   try:
     msg = service.users().messages().get(userId=user_id, id=msg_id, format='metadata').execute()
-    date   = ','.join([hdr['value'] for hdr in msg['payload']['headers'] if hdr['name']=='Date'])
-    sender = ','.join([hdr['value'] for hdr in msg['payload']['headers'] if hdr['name']=='From'])
-    sbj    = ' '.join([hdr['value'] for hdr in msg['payload']['headers'] if hdr['name']=='Subject'])
-    labels = ','.join([lbl[x] for x in msg['labelIds']])
+    date   = [hdr['value'] for hdr in msg['payload']['headers'] if hdr['name']=='Date']
+    sender = [hdr['value'] for hdr in msg['payload']['headers'] if hdr['name']=='From']
+    sbj    = [hdr['value'] for hdr in msg['payload']['headers'] if hdr['name']=='Subject']
+    labels = msg['labelIds']
     snippet= msg['snippet']
-    print(("%s\t%s\t%s\t%s\t%s" % (date, sender, sbj, labels, snippet)).encode('UTF-8'))
+    return (date, sender, sbj, labels, snippet)
   except errors.HttpError as error:
     print('An error occurred: %s' % error)
