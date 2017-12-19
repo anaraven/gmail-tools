@@ -7,6 +7,7 @@
 # Original licence: Code samples are licensed under the Apache 2.0 License.
 #
 
+from apiclient import errors
 from oauth2client import tools
 
 from gmail_tools import get_service, ListMessagesMatchingQuery, GetMessage
@@ -48,11 +49,14 @@ def main(flags):
         msg = service.users().messages().get(userId='me', id=r['id'],
             format='metadata').execute()
         ans={}
-        ans['date'] = [hdr['value'] for hdr in msg['payload']['headers'] if hdr['name']=='Date'][0]
-        ans['sender'] = [hdr['value'] for hdr in msg['payload']['headers'] if hdr['name']=='From'][0]
-        ans['sbj']  = [hdr['value'] for hdr in msg['payload']['headers'] if hdr['name']=='Subject'][0]
-        ans['labels'] = ','.join([lbl[x] for x in msg['labelIds']])
-        ans['snippet']= msg['snippet']
+        ans['date'] = ';'.join([hdr['value'] for hdr in msg['payload']['headers'] if hdr['name']=='Date'])
+        ans['sender'] = ','.join([hdr['value'] for hdr in msg['payload']['headers'] if hdr['name']=='From'])
+        ans['sbj']  = '|'.join([hdr['value'] for hdr in msg['payload']['headers'] if hdr['name']=='Subject'])
+        ans['labels'] = [lbl[x] for x in msg.get('labelIds',[])]
+        ans['cs_labels'] = ','.join([lbl[x] for x in msg.get('labelIds',[])])
+        ans['snippet']= msg.get('snippet',"")
+        ans['internalDate'] = msg.get('internalDate', 0)
+        ans['sizeEstimate'] = msg.get('sizeEstimate', 0)
         print(fmt.format(**ans))
       except errors.HttpError as error:
         print('An error occurred: %s' % error)
