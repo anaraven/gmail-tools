@@ -28,13 +28,16 @@ def main(flags):
     m_id = {}
     old_qry = None
     if(flags.log):
-      with open(flags.log,"r") as logfile:
-        for l in logfile:
+      try:
+        with open(flags.log,"r") as logfile:
+          for l in logfile:
             if l[0]=="#":
               old_qry=l[2:].strip()
               continue
             ll = l.strip().split("\t")
             m_id[ll[5]]=1
+      except OSError:
+        pass
 
     qry = ['has:attachment']
     if(flags.before):
