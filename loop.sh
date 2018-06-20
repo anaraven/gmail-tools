@@ -14,6 +14,8 @@ while true; do
 	then
 	  awk -vLBL="$LBL" -f $BIN/messg.awk new.txt | sh
 	  cat new.txt >> log.txt
+	  sleep 60
+	else
+	  sleep 300
         fi
-	sleep 30
 done
