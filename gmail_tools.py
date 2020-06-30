@@ -131,13 +131,14 @@ def GetMsgAttach(service, user_id, msg_id):
     date   = [hdr['value'] for hdr in message['payload']['headers'] if hdr['name']=='Date']
     attch = []
     fname = []
-    for part in message['payload']['parts']:
-      if part['filename']:
-        att_id = part['body']['attachmentId']
-        attach = service.users().messages().attachments().get(userId=user_id,
-            messageId=msg_id, id=att_id).execute()
-        attch.append(base64.urlsafe_b64decode(attach['data'].encode('ascii')))
-        fname.append(part['filename'])
+    if 'parts' in message['payload']:
+      for part in message['payload']['parts']:
+        if part['filename']:
+          att_id = part['body']['attachmentId']
+          attach = service.users().messages().attachments().get(userId=user_id,
+              messageId=msg_id, id=att_id).execute()
+          attch.append(base64.urlsafe_b64decode(attach['data'].encode('ascii')))
+          fname.append(part['filename'])
     return (sender, date, fname, attch)
   except errors.HttpError as error:
     print('An error occurred: %s' % error)
