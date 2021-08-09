@@ -22,7 +22,7 @@ SCOPES = 'https://www.googleapis.com/auth/gmail.readonly'
 CLIENT_SECRET_FILE = 'client_secret.json'
 APPLICATION_NAME = 'Download attached files'
 
-def get_credentials(flags):
+def get_credentials(flags, cred_filename='gmail-python-quickstart.json'):
     """Gets valid user credentials from storage.
 
     If nothing has been stored, or if the stored credentials are invalid,
@@ -35,9 +35,7 @@ def get_credentials(flags):
     credential_dir = os.path.join(home_dir, '.credentials')
     if not os.path.exists(credential_dir):
         os.makedirs(credential_dir)
-    credential_path = os.path.join(credential_dir,
-                                   'gmail-python-quickstart.json')
-
+    credential_path = os.path.join(credential_dir, cred_filename)
     store = Storage(credential_path)
     credentials = store.get()
     if not credentials or credentials.invalid:
@@ -139,6 +137,20 @@ def GetMsgAttach(service, user_id, msg_id):
               messageId=msg_id, id=att_id).execute()
           attch.append(base64.urlsafe_b64decode(attach['data'].encode('ascii')))
           fname.append(part['filename'])
+    return (sender, date, fname, attch)
+  except errors.HttpError as error:
+    print('An error occurred: %s' % error)
+
+def GetMsgText(service, user_id, msg_id):
+  try:
+    message = service.users().messages().get(userId=user_id, id=msg_id).execute()
+    sender = [hdr['value'] for hdr in message['payload']['headers'] if hdr['name']=='From']
+    date   = [hdr['value'] for hdr in message['payload']['headers'] if hdr['name']=='Date']
+    attch = []
+    for part in message['payload']['parts']:
+      if part['mimeType']=="text/plain" and part['filename']=="":
+        att_id = part['body']
+        attch.append(base64.urlsafe_b64decode(att_id['data'].encode('ascii')))
     return (sender, date, fname, attch)
   except errors.HttpError as error:
     print('An error occurred: %s' % error)
