@@ -59,7 +59,7 @@ def main(flags):
 
     for msg in results:
         if not msg['id'] in m_id:
-          (sender, date, fname, file_data) = GetMsgAttach(service, 'me', msg['id'])
+          (sender, date, fname, file_data, sbj) = GetMsgAttach(service, 'me', msg['id'])
           for i in range(len(fname)):
             m = hashlib.md5()
             m.update(file_data[i])
@@ -67,8 +67,8 @@ def main(flags):
             path = ''.join([flags.outdir, m.hexdigest(), file_ext])
             with open(path, 'wb') as f:
               f.write(file_data[i])
-            print("%s\t%s\t%s\t%s\t%s%s\t%s" % (m.hexdigest(), file_ext,
-              date[0], sender[0], filename, file_ext, msg['id']))
+            print("%s\t%s\t%s\t%s\t%s%s\t%s\t%s" % (m.hexdigest(), file_ext,
+              date[0], sender[0], filename, file_ext, msg['id'], sbj))
 
 
 if __name__ == '__main__':

@@ -16,11 +16,11 @@ while true; do
 	  awk -vLBL="$LBL" -f $BIN/messg.awk new.txt | sh
 	  cat new.txt >> log.txt
 	  echo NOW sleeping
-	  # sleep 3600
-	  sleep 60
+	  sleep 300
+	  # sleep 60
 	else
 	  echo NOW sleeping
-	  # sleep 7200
-	  sleep 180
+	  sleep 600
+	  # sleep 180
         fi
 done

@@ -84,7 +84,7 @@ def ListMessagesMatchingQuery(service, user_id, query=''):
                                          pageToken=page_token).execute()
       messages.extend(response['messages'])
 
-    return messages
+    return reversed(messages)
   except errors.HttpError as error:
     print('An error occurred: %s' % error)
 
@@ -127,6 +127,7 @@ def GetMsgAttach(service, user_id, msg_id):
     message = service.users().messages().get(userId=user_id, id=msg_id).execute()
     sender = [hdr['value'] for hdr in message['payload']['headers'] if hdr['name']=='From']
     date   = [hdr['value'] for hdr in message['payload']['headers'] if hdr['name']=='Date']
+    sbj    = [hdr['value'] for hdr in message['payload']['headers'] if hdr['name']=='Subject']
     attch = []
     fname = []
     if 'parts' in message['payload']:
@@ -137,7 +138,7 @@ def GetMsgAttach(service, user_id, msg_id):
               messageId=msg_id, id=att_id).execute()
           attch.append(base64.urlsafe_b64decode(attach['data'].encode('ascii')))
           fname.append(part['filename'])
-    return (sender, date, fname, attch)
+    return (sender, date, fname, attch, sbj[0])
   except errors.HttpError as error:
     print('An error occurred: %s' % error)
 
