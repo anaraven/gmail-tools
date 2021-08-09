@@ -10,10 +10,10 @@ echo Label is $LBL
 
 while true; do
 	date
-	/usr/local/bin/python3 $BIN/attach_downloader.py --log log.txt --label "$LBL" $* | tee new.txt
+	/usr/bin/python3 $BIN/attach_downloader.py --log log.txt --label "$LBL" $* | tee new.txt
 	if test -s new.txt
 	then
-	  # awk -vLBL="$LBL" -f $BIN/messg.awk new.txt | sh
+	  awk -vLBL="$LBL" -f $BIN/messg.awk new.txt | sh
 	  cat new.txt >> log.txt
 	  echo NOW sleeping
 	  sleep 3600
